@@ -24,7 +24,8 @@ class WebpackAliyunOss {
 			timeout: 30 * 1000,
 			setOssPath: null,
 			setHeaders: null,
-			overwrite: true
+			overwrite: true,
+			changeACL: false
 		}, options);
 
 		this.configErrStr = this.checkOptions(options);
@@ -96,7 +97,8 @@ class WebpackAliyunOss {
 			timeout,
 			verbose,
 			test,
-			overwrite
+			overwrite,
+			changeACL
 		} = this.config;
 
 		files = files.map(file => path.resolve(file))
@@ -134,6 +136,11 @@ class WebpackAliyunOss {
 				this.filesUploaded.push(filePath)
 
 				verbose && console.log(filePath.blue, '\nupload to ' + ossFilePath + ' success,'.green, 'cdn url =>', result.url.green);
+
+				if (changeACL) {
+					let setResult = await this.client.putACL(result.name, changeACL);
+					verbose && console.log(filePath.blue, '\nputACL ' + ossFilePath + ' success'.green);
+				}
 
 				if (deleteOrigin) {
 					fs.unlinkSync(filePath);

@@ -1,0 +1,27 @@
+[1mdiff --git a/index.js b/index.js[m
+[1mindex cb805f3..989488f 100644[m
+[1m--- a/index.js[m
+[1m+++ b/index.js[m
+[36m@@ -109,11 +109,11 @@[m [mclass WebpackAliyunOss {[m
+ 		const splitToken = inWebpack ?[m
+ 			'/' + outputPath.split('/').slice(-2).join('/') + '/' :[m
+ 			'/' + path.resolve(buildRoot).split('/').slice(-2).join('/') + '/';[m
+[31m-[m
+[32m+[m		[32mlet nowFilePath = null;[m
+ 		try {[m
+ 			for (let filePath of files) {[m
+ 				let ossFilePath = slash(path.join(dist, (setOssPath && setOssPath(filePath) || (splitToken && filePath.split(splitToken)[1] || ''))));[m
+[31m-[m
+[32m+[m				[32mnowFilePath = ossFilePath;[m
+ 				const fileExists = await this.fileExists(ossFilePath)[m
+ [m
+ 				if (fileExists && !overwrite) {[m
+[36m@@ -149,7 +149,7 @@[m [mclass WebpackAliyunOss {[m
+ 				}[m
+ 			}[m
+ 		} catch (err) {[m
+[31m-			console.log(`failed to upload to ali oss: ${err.name}-${err.code}: ${err.message}\n${filePath}`.red)[m
+[32m+[m			[32mconsole.log(`failed to upload to ali oss: ${err.name}-${err.code}: ${err.message}\n${nowFilePath}`.red)[m
+ 		}[m
+ [m
+ 		verbose && this.filesIgnored.length && console.log('files ignored'.blue, this.filesIgnored);[m

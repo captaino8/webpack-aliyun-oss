@@ -24,7 +24,8 @@ class WebpackAliyunOss {
 			timeout: 30 * 1000,
 			setOssPath: null,
 			setHeaders: null,
-			overwrite: true
+			overwrite: true,
+			changeACL: false
 		}, options);
 
 		this.configErrStr = this.checkOptions(options);
@@ -96,7 +97,8 @@ class WebpackAliyunOss {
 			timeout,
 			verbose,
 			test,
-			overwrite
+			overwrite,
+			changeACL
 		} = this.config;
 
 		files = files.map(file => path.resolve(file))
@@ -107,11 +109,11 @@ class WebpackAliyunOss {
 		const splitToken = inWebpack ?
 			'/' + outputPath.split('/').slice(-2).join('/') + '/' :
 			'/' + path.resolve(buildRoot).split('/').slice(-2).join('/') + '/';
-
+		let nowFilePath = null;
 		try {
 			for (let filePath of files) {
 				let ossFilePath = slash(path.join(dist, (setOssPath && setOssPath(filePath) || (splitToken && filePath.split(splitToken)[1] || ''))));
-
+				nowFilePath = ossFilePath;
 				const fileExists = await this.fileExists(ossFilePath)
 
 				if (fileExists && !overwrite) {
@@ -135,6 +137,11 @@ class WebpackAliyunOss {
 
 				verbose && console.log(filePath.blue, '\nupload to ' + ossFilePath + ' success,'.green, 'cdn url =>', result.url.green);
 
+				if (changeACL) {
+					let setResult = await this.client.putACL(result.name, changeACL);
+					verbose && console.log(filePath.blue, '\nputACL ' + ossFilePath + ' success'.green);
+				}
+
 				if (deleteOrigin) {
 					fs.unlinkSync(filePath);
 					if (deleteEmptyDir && files.every(f => f.indexOf(path.dirname(filePath)) === -1))
@@ -142,7 +149,7 @@ class WebpackAliyunOss {
 				}
 			}
 		} catch (err) {
-			console.log(`failed to upload to ali oss: ${err.name}-${err.code}: ${err.message}`.red)
+			console.log(`failed to upload to ali oss: ${err.name}-${err.code}: ${err.message}\n${nowFilePath}`.red)
 		}
 
 		verbose && this.filesIgnored.length && console.log('files ignored'.blue, this.filesIgnored);
